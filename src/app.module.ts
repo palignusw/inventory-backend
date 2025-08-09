@@ -24,7 +24,7 @@ import { AuthModule } from './auth/auth.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       autoLoadEntities: true,
-      synchronize: true,
+      synchronize: false,
     }),
     UsersModule,
     InventoriesModule,
@@ -34,7 +34,7 @@ import { AuthModule } from './auth/auth.module';
     LikesModule,
     AccessModule,
     IdPartsModule,
-    AuthModule
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
