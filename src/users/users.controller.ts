@@ -5,13 +5,32 @@ import {
   Post,
   Body,
   NotFoundException,
+  Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { Roles } from 'src/decorators/roles';
+import { Public } from 'src/decorators/public';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+  @Public()
+  @Get('ping-public')
+  pingPublic() {
+    return { ok: true, who: 'guest or user' };
+  }
+
+  @Get('me')
+  me(@Req() req) {
+    return req.user;
+  }
+
+  @Roles('admin')
+  @Get('admin-only')
+  adminOnly() {
+    return { secret: 'for admin' };
+  }
 
   @Get(':id')
   async getById(@Param('id') id: string) {
@@ -28,7 +47,7 @@ export class UsersController {
   }
 
   @Post()
-  async create(@Body() dto:CreateUserDto) {
+  async create(@Body() dto: CreateUserDto) {
     return this.usersService.create(dto);
   }
 }

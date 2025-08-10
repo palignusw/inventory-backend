@@ -4,31 +4,38 @@ import {
   Column,
   CreateDateColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { Inventory } from 'src/inventories/entities/inventory.entity';
 import { Comment } from 'src/comments/entities/comment.entity';
 import { Like } from 'src/likes/entities/like.entity';
 import { Access } from 'src/access/entities/access.entity';
+import { Role } from 'src/enums/role';
+import { AuthProvider } from 'src/enums/provider';
 
 @Entity()
+@Index(['provider', 'providerId'], {
+  unique: true,
+  where: '"provider" IS NOT NULL AND "providerId" IS NOT NULL',
+})
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ length: 255 })
   name: string;
 
-  @Column({ unique: true })
-  email: string;
+  @Column({ type: 'varchar', length: 255, nullable: true, unique: true })
+  email: string | null;
 
-  @Column({ type: 'varchar', length: 20, nullable: true })
-  provider: 'github' | 'google' | 'facebook' | 'apple' | null;
+  @Column({ type: 'enum', enum: AuthProvider, nullable: true })
+  provider: AuthProvider | null;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   providerId: string | null;
 
-  @Column({ default: 'user' })
-  role: string;
+  @Column({ type: 'enum', enum: Role, default: Role.USER })
+  role: Role;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -1,22 +1,38 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { UsersService } from 'src/users/users.service';
+import { AuthProvider } from 'src/enums/provider';
+
+type OAuthProfile = {
+  name: string;
+  email: string | null;
+  provider: AuthProvider;
+  providerId: string;
+};
 
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
-    private jwtService: JwtService,
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
   ) {}
 
-  async validateOAuthUser({
-    email,
-    name,
-    provider,
-    providerId,
-  }: CreateUserDto) {
-    let user = await this.usersService.findByEmail(email);
+  async validateOAuthUser(profile: OAuthProfile) {
+    const { email, provider, providerId, name } = profile;
+
+    let user = await this.usersService.findByProvider(provider, providerId);
+
+    if (!user && email) {
+      user = await this.usersService.findByEmail(email);
+      if (user) {
+        user = await this.usersService.linkProvider(
+          user.id,
+          provider,
+          providerId,
+        );
+      }
+    }
+
     if (!user) {
       user = await this.usersService.create({
         name,
@@ -25,13 +41,16 @@ export class AuthService {
         providerId,
       });
     }
+
     return user;
   }
 
   async login(user: any) {
-    const payload = { sub: user.id, email: user.email, role: user.role };
-    return {
-      accessToken: this.jwtService.sign(payload),
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role ?? 'user',
     };
+    return { accessToken: this.jwtService.sign(payload) };
   }
 }
