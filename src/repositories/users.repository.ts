@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 
@@ -18,8 +19,8 @@ export class UsersRepository {
     return this.repo.findOne({ where: { id } });
   }
 
-  async createUser(data: { name: string; email: string }) {
-    const user = this.repo.create({ name: data.name, email: data.email });
+  async createUser(dto: CreateUserDto) {
+    const user = this.repo.create(dto);
     return this.repo.save(user);
   }
 }

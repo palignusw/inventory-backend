@@ -8,13 +8,23 @@ export class AuthController {
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  async googleAuth() {
-  }
+  async googleAuth() {}
 
   @Get('google/redirect')
   @UseGuards(AuthGuard('google'))
   async googleRedirect(@Req() req, @Res() res) {
     const token = await this.authService.login(req.user);
     return res.send(token);
+  }
+
+  @Get('github')
+  @UseGuards(AuthGuard('github'))
+  githubAuth() {}
+
+  @Get('github/redirect')
+  @UseGuards(AuthGuard('github'))
+  async githubRedirect(@Req() req, @Res() res) {
+    const token = await this.authService.login(req.user);
+    return res.json(token);
   }
 }

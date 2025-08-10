@@ -20,7 +20,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: any,
     done: VerifyCallback,
   ) {
-    const user = await this.authService.validateGoogleUser(profile);
+    const user = await this.authService.validateOAuthUser(profile);
     done(null, user);
   }
 }

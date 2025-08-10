@@ -21,6 +21,12 @@ export class User {
   @Column({ unique: true })
   email: string;
 
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  provider: 'github' | 'google' | 'facebook' | 'apple' | null;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  providerId: string | null;
+
   @Column({ default: 'user' })
   role: string;
 

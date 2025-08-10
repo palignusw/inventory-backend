@@ -7,6 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -27,7 +28,7 @@ export class UsersController {
   }
 
   @Post()
-  async create(@Body() body: { name: string; email: string }) {
-    return this.usersService.create(body);
+  async create(@Body() dto:CreateUserDto) {
+    return this.usersService.create(dto);
   }
 }

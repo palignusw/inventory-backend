@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
@@ -9,18 +10,21 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateGoogleUser(profile: any) {
-    const { id, displayName, emails } = profile;
-    const email = emails[0].value;
-
+  async validateOAuthUser({
+    email,
+    name,
+    provider,
+    providerId,
+  }: CreateUserDto) {
     let user = await this.usersService.findByEmail(email);
     if (!user) {
       user = await this.usersService.create({
-        name: displayName,
+        name,
         email,
+        provider,
+        providerId,
       });
     }
-
     return user;
   }
 
