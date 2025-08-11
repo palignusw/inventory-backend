@@ -4,34 +4,40 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { Inventory } from 'src/inventories/entities/inventory.entity';
 
+export enum IdPartType {
+  TEXT = 'text',
+  GUID = 'guid',
+  RANDOM6 = 'random6',
+  RANDOM9 = 'random9',
+  RANDOM20 = 'random20',
+  RANDOM32 = 'random32',
+  DATE = 'date',
+  SEQUENCE = 'sequence',
+}
+
 @Entity()
+@Index(['inventory', 'order'])
 export class IdPart {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Inventory, (inventory) => inventory.idParts, {
+  @ManyToOne(() => Inventory, (inv) => inv.idParts, {
     onDelete: 'CASCADE',
+    nullable: false,
   })
-  @JoinColumn()
+  @JoinColumn({ name: 'inventory_id' })
   inventory: Inventory;
 
-  @Column()
-  type:
-    | 'text'
-    | 'guid'
-    | 'random6'
-    | 'random9'
-    | 'random20'
-    | 'random32'
-    | 'date'
-    | 'sequence';
+  @Column({ type: 'enum', enum: IdPartType })
+  type: IdPartType;
 
   @Column({ nullable: true })
-  value: string; 
+  value: string | null;
 
-  @Column({ default: 0 })
-  order: number; 
+  @Column({ type: 'int', default: 0 })
+  order: number;
 }

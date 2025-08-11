@@ -1,20 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from 'src/users/entities/user.entity';
 import { AuthProvider } from 'src/enums/provider';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import { User } from 'src/users/entities/user.entity';
-import { Repository } from 'typeorm';
 
 @Injectable()
 export class UsersRepository {
   constructor(
-    @InjectRepository(User)
-    private readonly repo: Repository<User>,
+    @InjectRepository(User) private readonly repo: Repository<User>,
   ) {}
 
+  private normalizeEmail(email: string | null) {
+    return email ? email.trim().toLowerCase() : null;
+  }
+
   async findByEmail(email: string | null) {
-    if (!email) return null;
-    return this.repo.findOne({ where: { email } });
+    const e = this.normalizeEmail(email);
+    if (!e) return null;
+    return this.repo.findOne({ where: { email: e } });
   }
 
   findByProvider(provider: AuthProvider, providerId: string) {
@@ -26,7 +30,13 @@ export class UsersRepository {
     provider: AuthProvider,
     providerId: string,
   ) {
-    await this.repo.update({ id: userId }, { provider, providerId });
+    const taken = await this.repo.findOne({ where: { provider, providerId } });
+    if (taken && taken.id !== userId) {
+      throw new ConflictException(
+        'Этот провайдер уже привязан к другому аккаунту',
+      );
+    }
+    await this.repo.update(userId, { provider, providerId });
     return this.findById(userId);
   }
 
@@ -35,7 +45,11 @@ export class UsersRepository {
   }
 
   async createUser(dto: CreateUserDto) {
-    const user = this.repo.create(dto);
+    const user = this.repo.create({
+      ...dto,
+      name: dto.name?.trim(),
+      email: this.normalizeEmail(dto.email ?? null),
+    });
     return this.repo.save(user);
   }
 }

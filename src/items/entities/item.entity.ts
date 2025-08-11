@@ -3,37 +3,44 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
+  OneToMany,
   JoinColumn,
   CreateDateColumn,
-  OneToMany,
+  VersionColumn,
+  Unique,
 } from 'typeorm';
 import { Inventory } from 'src/inventories/entities/inventory.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Like } from 'src/likes/entities/like.entity';
 
 @Entity()
+@Unique(['inventory', 'customId'])
 export class Item {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: false })
-  customId: string; 
+  @Column({ length: 191 })
+  customId: string;
 
-  @Column('json')
-  fieldValues: Record<string, any>; 
+  @Column({ type: 'json', nullable: true })
+  fieldValues: Record<string, any> | null;
 
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => Inventory, (inventory) => inventory.items, {
+  @VersionColumn()
+  version: number;
+
+  @ManyToOne(() => Inventory, (inv) => inv.items, {
     onDelete: 'CASCADE',
+    nullable: false,
   })
-  @JoinColumn()
+  @JoinColumn({ name: 'inventory_id' })
   inventory: Inventory;
 
-  @ManyToOne(() => User, (user) => user.id, { onDelete: 'SET NULL' })
-  @JoinColumn()
-  createdBy: User;
+  @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'created_by_id' })
+  createdBy: User | null;
 
   @OneToMany(() => Like, (like) => like.item)
   likes: Like[];

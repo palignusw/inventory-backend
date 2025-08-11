@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   OneToMany,
+  Unique,
   Index,
 } from 'typeorm';
 import { Inventory } from 'src/inventories/entities/inventory.entity';
@@ -14,10 +15,8 @@ import { Role } from 'src/enums/role';
 import { AuthProvider } from 'src/enums/provider';
 
 @Entity()
-@Index(['provider', 'providerId'], {
-  unique: true,
-  where: '"provider" IS NOT NULL AND "providerId" IS NOT NULL',
-})
+@Unique(['provider', 'providerId'])
+@Index(['email'])
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -36,6 +35,9 @@ export class User {
 
   @Column({ type: 'enum', enum: Role, default: Role.USER })
   role: Role;
+
+  @Column({ default: false })
+  isBlocked: boolean;
 
   @CreateDateColumn()
   createdAt: Date;

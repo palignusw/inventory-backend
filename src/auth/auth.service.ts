@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { AuthProvider } from 'src/enums/provider';
@@ -21,12 +21,14 @@ export class AuthService {
     const { email, provider, providerId, name } = profile;
 
     let user = await this.usersService.findByProvider(provider, providerId);
+    if (user?.isBlocked) throw new ForbiddenException('User is blocked');
 
     if (!user && email) {
-      user = await this.usersService.findByEmail(email);
-      if (user) {
+      const byEmail = await this.usersService.findByEmail(email);
+      if (byEmail) {
+        if (byEmail.isBlocked) throw new ForbiddenException('User is blocked');
         user = await this.usersService.linkProvider(
-          user.id,
+          byEmail.id,
           provider,
           providerId,
         );
@@ -46,6 +48,8 @@ export class AuthService {
   }
 
   async login(user: any) {
+    if (user.isBlocked) throw new ForbiddenException('User is blocked'); // <— здесь тоже
+
     const payload = {
       sub: user.id,
       email: user.email,

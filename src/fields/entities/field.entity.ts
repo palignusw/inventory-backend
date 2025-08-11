@@ -4,31 +4,43 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { Inventory } from 'src/inventories/entities/inventory.entity';
 
+export enum FieldType {
+  TEXT = 'text',
+  TEXTAREA = 'textarea',
+  NUMBER = 'number',
+  BOOLEAN = 'boolean',
+  FILE = 'file',
+}
+
 @Entity()
+@Index(['inventory', 'type']) // быстро считать поля по типу (для лимита 3)
+@Index(['inventory', 'order']) // drag&drop порядок
 export class Field {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ length: 191 })
   title: string;
 
   @Column({ type: 'text', nullable: true })
-  description: string;
+  description: string | null; // tooltip
 
-  @Column()
-  type: 'text' | 'textarea' | 'number' | 'boolean' | 'file';
+  @Column({ type: 'enum', enum: FieldType })
+  type: FieldType;
 
   @Column({ default: false })
   showInTable: boolean;
 
-  @Column({ default: 0 })
+  @Column({ type: 'int', default: 0 })
   order: number;
 
-  @ManyToOne(() => Inventory, (inventory) => inventory.fields, {
+  @ManyToOne(() => Inventory, (inv) => inv.fields, {
     onDelete: 'CASCADE',
+    nullable: false,
   })
   @JoinColumn()
   inventory: Inventory;

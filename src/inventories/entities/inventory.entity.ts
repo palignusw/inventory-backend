@@ -3,9 +3,11 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   OneToMany,
   JoinColumn,
+  VersionColumn,
 } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Field } from 'src/fields/entities/field.entity';
@@ -23,7 +25,7 @@ export class Inventory {
   title: string;
 
   @Column({ type: 'text', nullable: true })
-  description: string;
+  description: string | null;
 
   @Column()
   category: string;
@@ -32,15 +34,21 @@ export class Inventory {
   isPublic: boolean;
 
   @Column({ nullable: true })
-  coverImageUrl: string;
+  coverImageUrl: string | null;
 
   @Column('simple-array', { nullable: true })
-  tags: string[];
+  tags: string[] | null;
 
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => User, (user) => user.inventories)
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @VersionColumn()
+  version: number;
+
+  @ManyToOne(() => User, (user) => user.inventories, { nullable: false })
   @JoinColumn()
   createdBy: User;
 
