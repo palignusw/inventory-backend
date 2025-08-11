@@ -14,11 +14,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { InventoriesService } from './inventories.service';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
-
-class ShareDto {
-  userId: number; // кому даём доступ
-  canWrite: boolean; // true=editor, false=viewer
-}
+import { ShareDto } from './dto/share-inventory.dto';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('inventories')
@@ -27,7 +23,6 @@ export class InventoriesController {
 
   @Post()
   create(@Req() req, @Body() dto: CreateInventoryDto) {
-    // owner = req.user из JwtStrategy
     return this.s.create(dto, req.user);
   }
 
@@ -51,6 +46,8 @@ export class InventoriesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: ShareDto,
   ) {
+    console.log(dto);
+    console.log(dto.userId);
     return this.s.share(id, req.user.id, dto.userId, dto.canWrite);
   }
 

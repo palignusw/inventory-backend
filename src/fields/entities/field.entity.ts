@@ -17,8 +17,8 @@ export enum FieldType {
 }
 
 @Entity()
-@Index(['inventory', 'type']) // быстро считать поля по типу (для лимита 3)
-@Index(['inventory', 'order']) // drag&drop порядок
+@Index(['inventory', 'type']) 
+@Index(['inventory', 'order']) 
 export class Field {
   @PrimaryGeneratedColumn()
   id: number;
@@ -27,8 +27,7 @@ export class Field {
   title: string;
 
   @Column({ type: 'text', nullable: true })
-  description: string | null; // tooltip
-
+  description: string | null; 
   @Column({ type: 'enum', enum: FieldType })
   type: FieldType;
 

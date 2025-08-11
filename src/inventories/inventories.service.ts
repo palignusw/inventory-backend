@@ -1,4 +1,3 @@
-// inventories/inventories.service.ts
 import {
   ForbiddenException,
   Injectable,

@@ -48,7 +48,7 @@ export class AuthService {
   }
 
   async login(user: any) {
-    if (user.isBlocked) throw new ForbiddenException('User is blocked'); // <— здесь тоже
+    if (user.isBlocked) throw new ForbiddenException('User is blocked'); 
 
     const payload = {
       sub: user.id,
