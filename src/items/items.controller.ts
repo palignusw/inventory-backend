@@ -1,34 +1,48 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+// src/items/items.controller.ts
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { ItemsService } from './items.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 
-@Controller('items')
+@Controller('inventories/:invId/items')
 export class ItemsController {
-  constructor(private readonly itemsService: ItemsService) {}
+  constructor(private readonly s: ItemsService) {}
 
-  @Post()
-  create(@Body() createItemDto: CreateItemDto) {
-    return this.itemsService.create(createItemDto);
+  @Get() list(@Param('invId', ParseIntPipe) invId: number) {
+    return this.s.list(invId);
   }
-
-  @Get()
-  findAll() {
-    return this.itemsService.findAll();
+  @Get(':id') getOne(
+    @Param('invId', ParseIntPipe) invId: number,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.s.getOne(invId, id);
   }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.itemsService.findOne(+id);
+  @Post() create(
+    @Param('invId', ParseIntPipe) invId: number,
+    @Body() dto: CreateItemDto,
+  ) {
+    return this.s.create(invId, dto);
   }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateItemDto: UpdateItemDto) {
-    return this.itemsService.update(+id, updateItemDto);
+  @Put(':id') update(
+    @Param('invId', ParseIntPipe) invId: number,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateItemDto,
+  ) {
+    return this.s.update(invId, id, dto);
   }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.itemsService.remove(+id);
+  @Delete(':id') remove(
+    @Param('invId', ParseIntPipe) invId: number,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.s.remove(invId, id);
   }
 }

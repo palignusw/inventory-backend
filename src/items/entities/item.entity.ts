@@ -8,6 +8,7 @@ import {
   CreateDateColumn,
   VersionColumn,
   Unique,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Inventory } from 'src/inventories/entities/inventory.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -25,8 +26,14 @@ export class Item {
   @Column({ type: 'json', nullable: true })
   fieldValues: Record<string, any> | null;
 
+  @Column({ type: 'text', nullable: false })
+  fieldValuesText: string;
+
   @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @VersionColumn()
   version: number;
