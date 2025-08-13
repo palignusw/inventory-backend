@@ -17,7 +17,6 @@ export class InventoriesService {
     private readonly accessRepo: AccessRepository,
   ) {}
 
-  /** Создание: инвентарь + доступ владельцу (canWrite=true) */
   async create(dto: CreateInventoryDto, owner: User) {
     const inv = await this.invRepo.createBasic(dto, owner);
     await this.accessRepo.upsert(inv.id, owner.id, true);
@@ -28,7 +27,6 @@ export class InventoriesService {
     return this.invRepo.findMine(userId);
   }
 
-  /** Обновление: owner или canWrite=true */
   async update(invId: number, userId: number, dto: UpdateInventoryDto) {
     const acc = await this.accessRepo.find(invId, userId);
     if (!acc) throw new ForbiddenException();
@@ -38,7 +36,6 @@ export class InventoriesService {
     return this.invRepo.updateWithVersion(invId, dto);
   }
 
-  /** Шаринг: только владелец */
   async share(
     invId: number,
     ownerId: number,
@@ -51,7 +48,6 @@ export class InventoriesService {
     return this.accessRepo.upsert(invId, targetUserId, canWrite);
   }
 
-  /** Удаление: только владелец */
   remove(invId: number, ownerId: number) {
     return this.invRepo.removeByOwner(invId, ownerId);
   }

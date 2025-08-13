@@ -5,20 +5,17 @@ import {
   ManyToOne,
   JoinColumn,
   Index,
+  CreateDateColumn,
+  UpdateDateColumn,
+  VersionColumn,
 } from 'typeorm';
 import { Inventory } from 'src/inventories/entities/inventory.entity';
+import { FieldType } from 'src/enums/fieldType';
 
-export enum FieldType {
-  TEXT = 'text',
-  TEXTAREA = 'textarea',
-  NUMBER = 'number',
-  BOOLEAN = 'boolean',
-  FILE = 'file',
-}
 
 @Entity()
-@Index(['inventory', 'type']) 
-@Index(['inventory', 'order']) 
+@Index(['inventory', 'type'])
+@Index(['inventory', 'order'])
 export class Field {
   @PrimaryGeneratedColumn()
   id: number;
@@ -27,14 +24,15 @@ export class Field {
   title: string;
 
   @Column({ type: 'text', nullable: true })
-  description: string | null; 
+  description: string | null;
+
   @Column({ type: 'enum', enum: FieldType })
   type: FieldType;
 
   @Column({ default: false })
   showInTable: boolean;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: 'int', unsigned: true, default: 0 })
   order: number;
 
   @ManyToOne(() => Inventory, (inv) => inv.fields, {
@@ -43,4 +41,12 @@ export class Field {
   })
   @JoinColumn()
   inventory: Inventory;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @VersionColumn() version: number;
 }
