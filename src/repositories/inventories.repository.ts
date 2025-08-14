@@ -22,6 +22,10 @@ export class InventoryRepository {
     return this.repo.save(inv);
   }
 
+  async exists(id: number): Promise<boolean> {
+    return (await this.repo.count({ where: { id } })) > 0;
+  }
+
   findByIdWithOwner(id: number) {
     return this.repo.findOne({ where: { id }, relations: ['createdBy'] });
   }

@@ -1,26 +1,35 @@
-import { Injectable } from '@nestjs/common';
-import { CreateLikeDto } from './dto/create-like.dto';
-import { UpdateLikeDto } from './dto/update-like.dto';
+// src/likes/likes.service.ts
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { LikesRepository } from 'src/repositories/likes.repository';
+import { ItemsRepository } from 'src/repositories/items.repository';
 
 @Injectable()
 export class LikesService {
-  create(createLikeDto: CreateLikeDto) {
-    return 'This action adds a new like';
+  constructor(
+    private readonly likes: LikesRepository,
+    private readonly items: ItemsRepository,
+  ) {}
+
+  private async ensureItem(invId: number, itemId: number) {
+    const it = await this.items.findById(invId, itemId);
+    if (!it) throw new NotFoundException('Item not found');
+    return it;
   }
 
-  findAll() {
-    return `This action returns all likes`;
+  async like(invId: number, itemId: number, userId: number) {
+    await this.ensureItem(invId, itemId);
+    await this.likes.addOnce(itemId, userId);
+    return { count: await this.likes.count(itemId) };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} like`;
+  async unlike(invId: number, itemId: number, userId: number) {
+    await this.ensureItem(invId, itemId);
+    await this.likes.remove(itemId, userId);
+    return { count: await this.likes.count(itemId) };
   }
 
-  update(id: number, updateLikeDto: UpdateLikeDto) {
-    return `This action updates a #${id} like`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} like`;
+  async count(invId: number, itemId: number) {
+    await this.ensureItem(invId, itemId);
+    return { count: await this.likes.count(itemId) };
   }
 }

@@ -1,33 +1,47 @@
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateCommentDto } from 'src/comments/dto/create-comment.dto';
-import { UpdateCommentDto } from 'src/comments/dto/update-comment.dto';
-import { Comment } from 'src/comments/entities/comment.entity';
 import { Repository } from 'typeorm';
+import { Comment } from 'src/comments/entities/comment.entity';
 
+@Injectable()
 export class CommentsRepository {
   constructor(
-    @InjectRepository(Comment)
-    private readonly repository: Repository<Comment>,
+    @InjectRepository(Comment) private readonly repo: Repository<Comment>,
   ) {}
 
-  async create(createCommentDto: CreateCommentDto) {
-    const newComment = this.repository.create(createCommentDto);
-    return this.repository.save(newComment);
+  list(invId: number, offset = 0, limit = 20) {
+    return this.repo.find({
+      where: { inventory: { id: invId } },
+      order: { createdAt: 'ASC' }, // линейная лента
+      skip: offset,
+      take: limit,
+      relations: ['author'],
+    });
   }
 
-  findAll() {
-    return this.repository.find();
+  findById(invId: number, id: number) {
+    return this.repo.findOne({
+      where: { id, inventory: { id: invId } },
+      relations: ['author'],
+    });
   }
 
-  findOne(id: number) {
-    return this.repository.findOneBy({ id });
+  createForInventory(invId: number, authorId: number | null, content: string) {
+    const c = this.repo.create({
+      content,
+      inventory: { id: invId } as any,
+      author: authorId ? ({ id: authorId } as any) : null,
+      isEdited: false,
+    });
+    return this.repo.save(c);
   }
 
-  update(id: number, updateCommentDto: UpdateCommentDto) {
-    return this.repository.update(id, updateCommentDto);
+  async updateContent(id: number, content: string) {
+    await this.repo.update({ id }, { content, isEdited: true });
+    return this.repo.findOneByOrFail({ id });
   }
 
   remove(id: number) {
-    return this.repository.softDelete(id);
+    return this.repo.delete(id);
   }
 }

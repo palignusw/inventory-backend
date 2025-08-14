@@ -10,5 +10,6 @@ import { AccessModule } from 'src/access/access.module';
   imports: [TypeOrmModule.forFeature([Inventory]), AccessModule],
   controllers: [InventoriesController],
   providers: [InventoriesService, InventoryRepository],
+  exports: [InventoryRepository],
 })
 export class InventoriesModule {}

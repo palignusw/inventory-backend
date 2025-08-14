@@ -1,34 +1,41 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Req,
+} from '@nestjs/common';
 import { LikesService } from './likes.service';
-import { CreateLikeDto } from './dto/create-like.dto';
-import { UpdateLikeDto } from './dto/update-like.dto';
 
-@Controller('likes')
+@Controller('inventories/:invId/items/:itemId')
 export class LikesController {
-  constructor(private readonly likesService: LikesService) {}
+  constructor(private readonly s: LikesService) {}
 
-  @Post()
-  create(@Body() createLikeDto: CreateLikeDto) {
-    return this.likesService.create(createLikeDto);
+  @Post('like')
+  like(
+    @Param('invId', ParseIntPipe) invId: number,
+    @Param('itemId', ParseIntPipe) itemId: number,
+    @Req() req: any,
+  ) {
+    return this.s.like(invId, itemId, req.user.id);
   }
 
-  @Get()
-  findAll() {
-    return this.likesService.findAll();
+  @Delete('like')
+  unlike(
+    @Param('invId', ParseIntPipe) invId: number,
+    @Param('itemId', ParseIntPipe) itemId: number,
+    @Req() req: any,
+  ) {
+    return this.s.unlike(invId, itemId, req.user.id);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.likesService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateLikeDto: UpdateLikeDto) {
-    return this.likesService.update(+id, updateLikeDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.likesService.remove(+id);
+  @Get('likes/count')
+  count(
+    @Param('invId', ParseIntPipe) invId: number,
+    @Param('itemId', ParseIntPipe) itemId: number,
+  ) {
+    return this.s.count(invId, itemId);
   }
 }

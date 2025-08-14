@@ -1,28 +1,62 @@
-import { Injectable } from '@nestjs/common';
-import { CreateCommentDto } from './dto/create-comment.dto';
-import { UpdateCommentDto } from './dto/update-comment.dto';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Role } from 'src/enums/role';
 import { CommentsRepository } from 'src/repositories/comments.repository';
+import { InventoryRepository } from 'src/repositories/inventories.repository';
+
+const MAX_LIMIT = 100;
 
 @Injectable()
 export class CommentsService {
-  constructor(private readonly commentsRepository: CommentsRepository) {}
-  create(createCommentDto: CreateCommentDto) {
-    return this.commentsRepository.create(createCommentDto);
+  constructor(
+    private readonly repo: CommentsRepository,
+    private readonly inventories: InventoryRepository,
+  ) {}
+
+  private async ensureInventory(invId: number) {
+    const exists = await this.inventories.exists(invId);
+    if (!exists) throw new NotFoundException('Inventory not found');
   }
 
-  findAll() {
-    return this.commentsRepository.findAll();
+  private assertCanModify(
+    authorId: number | undefined,
+    user: { id: number; role: Role },
+  ) {
+    if (user.role === 'admin') return;
+    if (authorId === user.id) return;
+    throw new ForbiddenException();
   }
 
-  findOne(id: number) {
-    return this.commentsRepository.findOne(id);
+  async list(invId: number, offset = 0, limit = 20) {
+    await this.ensureInventory(invId);
+    return this.repo.list(invId, offset, Math.min(limit, MAX_LIMIT));
   }
 
-  update(id: number, updateCommentDto: UpdateCommentDto) {
-    return this.commentsRepository.update(id, updateCommentDto);
+  async create(invId: number, userId: number, content: string) {
+    await this.ensureInventory(invId);
+    return this.repo.createForInventory(invId, userId, content);
   }
 
-  remove(id: number) {
-    return this.commentsRepository.remove(id);
+  async update(
+    invId: number,
+    id: number,
+    user: { id: number; role: Role },
+    content: string,
+  ) {
+    const comment = await this.repo.findById(invId, id);
+    if (!comment) throw new NotFoundException('Comment not found');
+    this.assertCanModify(comment.author?.id, user);
+    return this.repo.updateContent(id, content);
+  }
+
+  async remove(invId: number, id: number, user: { id: number; role: Role }) {
+    const comment = await this.repo.findById(invId, id);
+    if (!comment) throw new NotFoundException('Comment not found');
+    this.assertCanModify(comment.author?.id, user);
+    await this.repo.remove(id);
+    return { ok: true };
   }
 }

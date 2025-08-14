@@ -10,10 +10,8 @@ import {
 import { Item } from 'src/items/entities/item.entity';
 import { User } from 'src/users/entities/user.entity';
 
-@Entity()
-@Unique(['item', 'user'])
-@Index(['item'])
-@Index(['user'])
+@Entity('likes')
+@Index(['item', 'user'], { unique: true })
 export class Like {
   @PrimaryGeneratedColumn()
   id: number;
